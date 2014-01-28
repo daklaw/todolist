@@ -214,8 +214,8 @@
 
 - (NSString *) getDataPath {
     // Method returns the path of our data file (which will store our ToDoList)
-    NSString *path = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
-    return [path stringByAppendingString:@"data"];
+    NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    return [path stringByAppendingPathComponent:@"data.archive"];
 }
 
 
