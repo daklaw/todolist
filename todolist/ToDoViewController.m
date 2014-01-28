@@ -12,10 +12,6 @@
 
 @interface ToDoViewController ()
 
-
-//@property (nonatomic, strong) NSMutableArray *items;
-@property (nonatomic, assign) NSInteger *counter;
-
 - (void) onAddButton;
 - (void) onEditButton;
 - (void) onDoneButton;
@@ -23,6 +19,7 @@
 - (void) unsetEditButton;
 - (void) saveDataToDisk;
 - (void) loadDataFromDisk;
+- (CGFloat) textViewHeightForTextView: (UITextView *)textView;
 - (NSString *) getDataPath;
 
 @end
@@ -33,7 +30,7 @@
 {
     self = [super initWithStyle:style];
     if (self) {
-        // Custom initialization
+        
     }
     return self;
 }
@@ -41,7 +38,7 @@
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        
+
     }
     return self;
 }
@@ -64,12 +61,7 @@
     else {
         self.todolist = [[ToDoList alloc] initWithNSMutableArray:[NSMutableArray new]];
     }
-    
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
- 
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+
 }
 
 - (void)didReceiveMemoryWarning
@@ -82,22 +74,18 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-#warning Potentially incomplete method implementation.
     // Return the number of sections.
     return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-#warning Incomplete method implementation.
     // Return the number of rows in the section.
     return [self.todolist.list count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // static NSString *CellIdentifier = @"Cell";
-    // UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     static NSString *CellIdentifier = @"EditableCell";
     EditableCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     
@@ -106,15 +94,36 @@
     cell.itemTextView.tag = indexPath.row;
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     
+    
     // If ADDROW exists and we're rendering the first row, make it becomeFirstResponder
     if ([defaults boolForKey:@"ADDROW"] && indexPath.row == 0) {
         [cell.itemTextView becomeFirstResponder];
 
     }
-    // Configure the cell...
-    
+
     return cell;
 }
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    // check here, if it is one of the cells, that needs to be resized
+    // to the size of the contained UITextView
+
+    EditableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"EditableCell"];
+    UITextView *textView = cell.itemTextView;
+    textView.text = self.todolist.list[indexPath.row];
+
+    return [self textViewHeightForTextView:textView];
+}
+
+- (CGFloat)textViewHeightForTextView: (UITextView*)textView {
+    CGFloat textViewWidth = textView.frame.size.width;
+
+    CGSize size = [textView sizeThatFits:CGSizeMake(textViewWidth, FLT_MAX)];
+    
+    return size.height;
+}
+
+
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     // Return YES if you want the specified item to be editable.
@@ -129,6 +138,11 @@
         [self saveDataToDisk];
     }
 }
+
+- (BOOL)textViewShouldBeginEditing:(UITextView *)textView {
+    return !self.tableView.editing;
+}
+
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
     // Called when textView begins editing
@@ -172,8 +186,6 @@
     [self.tableView endEditing:YES];
 }
 
-
-
 - (void) onCancelButton {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     
@@ -194,11 +206,13 @@
 
 - (void) onEditButton {
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(unsetEditButton)];
+    self.navigationItem.rightBarButtonItem = nil;
     [self.tableView setEditing:YES animated:YES];
 }
 
 - (void) unsetEditButton {
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemEdit target:self action:@selector(onEditButton)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(onAddButton)];
     [self.tableView setEditing:NO animated:YES];
 }
 
@@ -219,57 +233,5 @@
     NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     return [path stringByAppendingPathComponent:@"data.archive"];
 }
-
-
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    }   
-    else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
-/*
-#pragma mark - Navigation
-
-// In a story board-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-
- */
 
 @end
