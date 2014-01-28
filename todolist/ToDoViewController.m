@@ -49,6 +49,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.title = @"To-Do List";
+    
     UINib *customNib = [UINib nibWithNibName:@"EditableCell" bundle:nil];
     [self.tableView registerNib:customNib forCellReuseIdentifier:@"EditableCell"];
     
