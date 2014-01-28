@@ -19,8 +19,9 @@
 - (void) unsetEditButton;
 - (void) saveDataToDisk;
 - (void) loadDataFromDisk;
-- (CGFloat) textViewHeightForTextView: (UITextView *)textView;
 - (NSString *) getDataPath;
+- (void)scrollToCursorForTextView: (UITextView*)textView;
+- (BOOL)rectVisible: (CGRect)rect;
 
 @end
 
@@ -111,16 +112,15 @@
     EditableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"EditableCell"];
     UITextView *textView = cell.itemTextView;
     textView.text = self.todolist.list[indexPath.row];
-
-    return [self textViewHeightForTextView:textView];
-}
-
-- (CGFloat)textViewHeightForTextView: (UITextView*)textView {
-    CGFloat textViewWidth = textView.frame.size.width;
-
-    CGSize size = [textView sizeThatFits:CGSizeMake(textViewWidth, FLT_MAX)];
+    textView.tag = indexPath.row;
     
-    return size.height;
+    CGRect expectedFrame = [textView.text boundingRectWithSize:CGSizeMake(250, CGFLOAT_MAX)
+                                                                   options:NSStringDrawingUsesLineFragmentOrigin
+                                                                attributes:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                                            textView.font, NSFontAttributeName,
+                                                                            nil]
+                                                                   context:nil];
+    return expectedFrame.size.height + 15.0;
 }
 
 
@@ -139,6 +139,17 @@
     }
 }
 
+- (void)textViewDidChange:(UITextView *)textView {
+    [self.todolist.list replaceObjectAtIndex:textView.tag withObject:textView.text];
+    [self.tableView beginUpdates]; // This will cause an animated update of
+    [self.tableView endUpdates];   // the height of your UITableViewCell
+    
+    // If the UITextView is not automatically resized (e.g. through autolayout
+    // constraints), resize it here
+    
+    [self scrollToCursorForTextView:textView]; // OPTIONAL: Follow cursor
+}
+
 - (BOOL)textViewShouldBeginEditing:(UITextView *)textView {
     return !self.tableView.editing;
 }
@@ -154,6 +165,7 @@
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setInteger:textView.tag forKey:@"ROWEDITED"];
     [defaults synchronize];
+    [self scrollToCursorForTextView:textView];
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
@@ -232,6 +244,28 @@
     // Method returns the path of our data file (which will store our ToDoList)
     NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     return [path stringByAppendingPathComponent:@"data.archive"];
+}
+
+- (void)scrollToCursorForTextView: (UITextView*)textView {
+    
+    CGRect cursorRect = [textView caretRectForPosition:textView.selectedTextRange.start];
+    
+    cursorRect = [self.tableView convertRect:cursorRect fromView:textView];
+    
+    if (![self rectVisible:cursorRect]) {
+        cursorRect.size.height += 8; // To add some space underneath the cursor
+        [self.tableView scrollRectToVisible:cursorRect animated:YES];
+    }
+}
+
+- (BOOL)rectVisible: (CGRect)rect {
+    CGRect visibleRect;
+    visibleRect.origin = self.tableView.contentOffset;
+    visibleRect.origin.y += self.tableView.contentInset.top;
+    visibleRect.size = self.tableView.bounds.size;
+    visibleRect.size.height -= self.tableView.contentInset.top + self.tableView.contentInset.bottom;
+    
+    return CGRectContainsRect(visibleRect, rect);
 }
 
 @end
