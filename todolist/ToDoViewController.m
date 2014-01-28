@@ -114,7 +114,7 @@
     textView.text = self.todolist.list[indexPath.row];
     textView.tag = indexPath.row;
     
-    CGRect expectedFrame = [textView.text boundingRectWithSize:CGSizeMake(250, CGFLOAT_MAX)
+    CGRect expectedFrame = [textView.text boundingRectWithSize:CGSizeMake(270, CGFLOAT_MAX)
                                                                    options:NSStringDrawingUsesLineFragmentOrigin
                                                                 attributes:[NSDictionary dictionaryWithObjectsAndKeys:
                                                                             textView.font, NSFontAttributeName,
