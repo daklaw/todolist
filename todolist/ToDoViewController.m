@@ -154,6 +154,16 @@
     return !self.tableView.editing;
 }
 
+- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
+    return YES;
+}
+
+- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath {
+    NSString *stringToMove = [self.todolist.list objectAtIndex:sourceIndexPath.row];
+    [self.todolist.list removeObjectAtIndex:sourceIndexPath.row];
+    [self.todolist.list insertObject:stringToMove atIndex:destinationIndexPath.row];
+}
+
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
     // Called when textView begins editing
