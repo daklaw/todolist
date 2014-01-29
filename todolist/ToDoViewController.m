@@ -217,6 +217,7 @@
     [self.todolist.list replaceObjectAtIndex:[defaults integerForKey:@"ROWEDITED"] withObject:self.previous_str];
     [self.tableView reloadData];
     [defaults setBool:YES forKey:@"CANCELEDIT"];
+    [defaults synchronize];
     [self.tableView endEditing:YES];
 }
 
