@@ -12,6 +12,8 @@
 
 @interface ToDoViewController ()
 
+@property (nonatomic,retain) NSString *previous_str;
+
 - (void) onAddButton;
 - (void) onEditButton;
 - (void) onDoneButton;
@@ -172,6 +174,7 @@
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(onDoneButton)];
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(onCancelButton)];
     
+    self.previous_str = textView.text;
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setInteger:textView.tag forKey:@"ROWEDITED"];
     [defaults synchronize];
@@ -210,7 +213,9 @@
 
 - (void) onCancelButton {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    
+
+    [self.todolist.list replaceObjectAtIndex:[defaults integerForKey:@"ROWEDITED"] withObject:self.previous_str];
+    [self.tableView reloadData];
     [defaults setBool:YES forKey:@"CANCELEDIT"];
     [self.tableView endEditing:YES];
 }
